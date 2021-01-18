@@ -145,6 +145,7 @@ URL 매핑은 웹사이트 주소를 간략하게 치환하는 과정입니다.
 Flask의 URL 규칙은 Werkzeug의 라우팅 모듈에 기반합니다. 해당 라우팅 모듈의 기본 사상은 초기 HTTP 서버들에서 제공한 전례에 기반을 둔 잘 구성되고 유일한 URL을 보장합니다.
 
 #### hello 끝점에 대한 정규 URL은 뒷 슬래시(/)를 포함합니다.
+
 ```
 @app.route('/hello/')
 def hello():
@@ -153,8 +154,33 @@ def hello():
 * url의 끝점에 /를 포함해라.
 
 #### 뒷 슬래시(/) 없이 URL에 접근하면, Flask가 뒷 슬래시를 가진 정규 URL로 고칩니다.
+
 ```
 @app.route('/bye')
 def bye():
     return 'bye!!'
+```
+
+#### url 매핑하기 - Routing
+
+```
+from flask import Flask
+
+
+app = Flask(__name__)
+
+#1번을 해보세요!
+@app.route('/') # home
+def index():
+    return "Index Page"
+
+
+#2번을 해보세요!
+@app.route('/hello')
+def hello():
+    return "Hello Elice!"
+
+
+if __name__ == '__main__':
+    app.run()
 ```
