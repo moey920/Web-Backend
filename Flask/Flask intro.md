@@ -161,7 +161,7 @@ def bye():
     return 'bye!!'
 ```
 
-#### url 매핑하기 - Routing
+### url 매핑하기 - Routing
 
 ```
 from flask import Flask
@@ -184,3 +184,108 @@ def hello():
 if __name__ == '__main__':
     app.run()
 ```
+### Variable Rules
+
+> 플라스크에서는 route()를 사용해서 url path의 값을 활용할 수 있습니다. url path의 문자열, 정수, 서브경로를 다루는 실습
+
+```
+from flask import Flask
+
+app = Flask(__name__)
+
+# 문자열은 사용할 변수명을 <변수명>로 감싸주면 함수에서 전달받은 값을 활용할 수 있습니다.
+@app.route('/user/<username>') # < 변수명>
+def show_user_profile(username) :
+    return 'User %s' % username
+    
+# 정수는 <int:변수명> 형태로 사용이 가능합니다.
+@app.route('/post/<int:post_id>')
+def show_post(post_id) :
+    return 'Post %s' % post_id
+    
+# 서브경로는 <path:subpath> 형태로 사용이 가능합니다.
+@app.route('/path/<path:subpath>') 
+def show_subpath(subpath) :
+    return "Subpath %s" % subpath
+```
+
+### 데이터 반환하기
+
+> Flask에서는 데이터를 json 파일 형식으로 데이터를 교환합니다.
+
+json 파일 형식은 웹 사이트 상에서 정보를 주고 받는 파일의 형식을 뜻합니다.
+여러분이 익히 알고 있는 Dictionary(사전형) 형태와 유사한 구조를 이루고 있습니다.
+예제 코드와 같이 Dictionary를 list로 감싸고 있는 형태입니다.
+
+Flask 에는 데이터를 json 형식으로 바꿔주는 jsonify() 메소드가 있습니다.
+jsonify()를 사용해서 데이터를 반환해봅시다.
+
+```
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route('/')
+def json():
+    people = [{'name':'Elice', 'birth-year':2015}, 
+              {'name':'Dodo', 'birth-year':2016},
+              {'name':'Queen', 'birth-year':2017}]
+    # jsonify()를 사용해서 people을 반환하세요.
+    return jsonify(people)
+
+if __name__ == '__main__':
+    app.run()
+```
+
+### URL 설계하기 - URL Building
+
+여러분은 웹 사이트의 기본 구조를 설계하고 사용자들이 웹 사이트에 접속하기 위해 URL 구조를 설계할 필요성이 있습니다.
+만약 한 페이지에서 다른 페이지로 이동할 수 있도록 링크를 생성하려면 어떻게 해야 할까요?
+
+Flask에서는 ```url_for()``` 메소드를 통해 이를 수행할 수 있습니다.
+> url_for()
+url_for() 함수는 특정 함수에 대한 URL을 동적으로 구축하는 데 사용할 수 있습니다. 
+일반적으로 URL 끝점에 이동할 함수 이름과 점(.)을 접두사로 붙이는 것처럼 사용할 수 있습니다.
+
+```
+from flask import *  
+
+# Flask 인스턴스 생성
+app = Flask(__name__)  
+
+
+# 홈 페이지로 이동
+@app.route('/')
+def home():
+    return "주소창에 /user/admin과 /admin <br/> /user/student과 /student를 입력해보세요."
+
+
+# 관리자 페이지로 이동
+@app.route('/admin')
+def admin():
+    return "This is Admin Page"
+
+
+# 학생 페이지로 이동
+@app.route('/student')
+def student():
+    return "This is Student Page"
+
+
+# redirect() 함수는 페이지에 다시 연결한다는 뜻으로 마치 페이지를 새로고침 한 것과 같은 동작합니다.
+@app.route('/user/<name>')
+def user(name):
+    # 전달 받은 name이 'admin' 이라면?
+    if name == 'admin':
+        return redirect(url_for('admin'))
+
+    # 전달 받은 name이 'student' 라면?
+    if name == 'student':
+        return redirect(url_for('student'))
+
+
+if __name__ == '__main__':
+    app.run()
+```
+
+- /user/student or /user/admin url로 접속했을 때 /student(@app.route('/admin')) or /admin(@app.route('/admin')) 페이지로 이동한다.
