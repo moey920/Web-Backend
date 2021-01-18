@@ -61,3 +61,100 @@ def hello_elice() :
 if __name__ == '__main__':
     app.run()
 ```
+
+## HTTP란 무엇일까요?
+
+- 모든 웹 브라우저에 있는 정보에 접근할 때는 URL을 통하여 접근합니다. 반대로 생각하면 URL을 모르는 정보에는 접근을 할 수 없다라는 것입니다.
+> 위 설명이 현재 우리가 사용하는 WWW(World Wide Web) 의 기본적인 틀 
+- URL을 통해 누군가에게 해당 정보를 요청하면, 요청한 정보를 누군가가 나에게 다시 전달해줍니다.
+- HTTP는 Hypertext Transfer Protocal의 약자
+    - Hypertext: 컴퓨터 화면이나 전자 기기에서 볼 수 있는 데이터이며, 다른 데이터와 연결될 수 있는 주소를 참조하고 있습니다.
+    - Transfer: 사람들이 브라우저를 통해 확인하는 웹 상의 데이터는 HTTP에 의해 전달됩니다.
+    - Protocal: 규칙 혹은 규약을 뜻합니다.
+
+브라우저 주소창에 URL을 입력하면 그 데이터를 요청하고 보여주는 것은 브라우저의 역할입니다. 그리고 요청 받은 데이터를 가져오는 것은 웹 서버의 역할이며 HTTP는 바로 그 클라이언트와 서버 간의 규칙입니다. 이때, 클라이언트의 요청을 HTTP Request, 서버의 응답을 HTTP Response라고 합니다.
+* HTTP는 연결 상태를 유지하지 않는 비연결성 프로토콜로 클라이언트에서 요청을 해야지만 서버에서 응답을 합니다.
+
+### HTTP Methods
+
+Flask는 HTTP 통신을 위해 아래와 같은 Methods를 제공합니다.
+
+| Method | 설명 | 
+|:---:|:---:|
+| GET | 암호화되지 않은 형태의 데이터를 서버로 전송하는데 사용되는 가장 일반적인 방법 |
+| HEAD | GET과 유사한 방법으로 Response Body를 포함하지 않고 사용 | 
+| POST | 특정 양식의 데이터를 암호화하여 서버로 전송하는데 사용 | 
+| PUT | 특정 대상의 데이터를 갱신(Update)하는데 사용 | 
+| DELETE | URL에 지정된 대상을 삭제(DELETE)하는 데 사용됩니다. | 
+
+### HTTP status code
+
+HTTP status code(응답 상태 코드)는 특정 HTTP 요청이 성공적으로 완료되었는지 알려주는 코드입니다. 총 응답은 5개의 그룹으로 나누어집니다. (상태 코드는 section 10 of RFC 2616에 정의되어 있습니다.)
+
+- 응답: 100
+- 성공적인 응답: 200
+- 리다이렉트: 300
+- 클라이언트 에러: 400
+- 서버 에러: 500
+예를 들어, 우리가 가끔 알 수 없는 URL로 들어갔을 때, 404 Error 가 나오는 페이지를 많이 목격했을 것입니다.
+
+## URL Routing이란?
+
+URL Routing이란 **서버에서 특정 URL에 접속했을 시 보여줄 페이지를 정해주는 것**을 뜻합니다.
+즉, **특정 URL을 일부 작업을 수행하기 위한 관련된 기능과 Mapping**하는 데 사용됩니다.
+
+예를들어 https://academy.elice.io/explore 로 접속했을 때 홈화면을 보여주고 https://academy.elice.io/courses 로 접속했을 때 수강할 수 있는 과목들을 볼 수 있는 것은 모두 URL Routing이라는 작업을 통해 이루어집니다.
+
+### Flask에서 URL 매핑은 어떻게 하나요?
+
+Flask에서 URL Routing은 ```@app.route('')``` 를 통해 수행할 수 있습니다.
+또한 ```@```를 통해 선언하는 방식을 **decorator(데코레이터)**라고 부릅니다.
+
+```
+from flask import Flask
+
+# Flask 인스턴스 생성
+app = Flask(__name__)
+
+# '/' URL 접속 시, "This is Home Page" 문구 출력
+@app.route('/’)
+def home():
+    return "This is Home Page"
+
+# '/hello' URL 접속 시, "Hello Elice!" 문구 출력
+@app.route('/hello’)
+def hello():
+    return "Hello Elice!"
+```
+
+### URL Mapping이란?
+
+URL 매핑은 웹사이트 주소를 간략하게 치환하는 과정입니다.
+아래의 예시와 같이 여러분이 ```home/randing.html``` 폴더에 홈 화면을 구성했다면, URL Mapping을 통해 접속할 수 있는 주소를 바꿀 수 있게 됩니다.
+
+- 기존 경로: ```https://academy.elice.io/home/randing.html```
+- URL 매핑 경로: ```https://academy.elice.io/explore```
+
+### URL 매핑을 왜 하는건가요?
+
+1. URL 주소를 가리므로 보안성이 향상됩니다.
+2. 주소를 간결하게 함으로 편의성이 향상됩니다.
+
+### URL의 규칙?
+
+Flask의 URL 규칙은 Werkzeug의 라우팅 모듈에 기반합니다. 해당 라우팅 모듈의 기본 사상은 초기 HTTP 서버들에서 제공한 전례에 기반을 둔 잘 구성되고 유일한 URL을 보장합니다.
+
+#### hello 끝점에 대한 정규 URL은 뒷 슬래시(/)를 포함합니다.
+```
+@app.route('/hello/')
+def hello():
+    return 'hello!!'
+```
+* url의 끝점에 /를 포함해라.
+
+#### 뒷 슬래시(/) 없이 URL에 접근하면, Flask가 뒷 슬래시를 가진 정규 URL로 고칩니다.
+```
+@app.route('/bye')
+def bye():
+    return 'bye!!'
+```
