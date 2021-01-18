@@ -340,12 +340,271 @@ WWW와 같은 시스템을 위한 소프트웨어 개발 아키텍처의 한 형
 최근 서버 프로그램은 다양한 브라우저(chrome, Internet Explorer 등)와 안드로이드폰, 아이폰과 같은 모바일 디바이스에서도 통신할 수 있어야 하기 때문입니다.
 
 ### REST 구성 요소
+* REST의 3요소로는 method, resource, message 가 있습니다.
 
-- 자원(Resource): URI
+- 자원(**Resource**): URI
 : 웹 서버의 자원는 각자 이름을 가지고 있습니다. 따라서, 클라이언트는 이러한 이름을 통해 원하는 정보를 찾을 수 있습니다. 이때 서버 자원의 이름은 통합 자원 식별자 또는 URI라고 부릅니다.
 
-- 행위(Verb): HTTP Method
+- 행위(Verb): HTTP **Method**
 : HTTP 프로토콜은 GET, POST, PUT, DELETE와 같은 메서드를 제공합니다.
 
-- 표현(Representation of Resource)
+- 표현(Representation of Resource) : **massage**
 : 클라이언트가 자원의 상태(정보)에 대해 요청하면 서버는 이에 적절한 응답을 보냅니다. REST의 하나의 자원은 JSON, XML, TEXT, RSS 등 여러 형태의 응답으로 나타낼 수 있습니다. 하지만, 보통 JSON이나 XML을 통해 데이터를 주고 받는 것이 일반적입니다.
+
+
+## POST
+
+HTTP 메소드 중 POST는 요청을 처리하기 위해 사용자(클라이언트)로부터 특정 양식(form)의 데이터를 암호화하여 서버로 전송하는 방법입니다.
+서버는 POST 방식으로 전달 받은 데이터를 통해 특정 동작을 수행할 수 있습니다.
+아래의 로그인 예시를 통해 자세히 알아봅시다.
+
+#### login.html
+```
+<html>  
+   <body>  
+      <form action = "/login" method = "post">  
+         <table>  
+        <tr><td>아이디</td>  
+        <td><input type ="text" name ="id"></td></tr>  
+        <tr><td>비밀번호</td>  
+        <td><input type ="password" name ="pass"></td></tr>  
+        <tr><td><input type = "submit"></td></tr>  
+    </table>  
+      </form>  
+   </body>  
+</html>
+```
+
+#### login.py(POST)
+```
+from flask import *  
+# Flask 인스턴스 생성
+app = Flask(__name__) 
+
+
+@app.route('/')
+def hello():
+    return render_template('login.html')
+
+
+# login 주소에서 POST 방식의 요청을 받았을 때
+@app.route('/login',methods = ['POST'])  
+def login():  
+    id = request.form['id']  
+    passwrd = request.form['pass'] 
+
+    if id=="Elice" and passwrd=="Awesome!": 
+        return "Welcome %s" % id  
+
+
+if __name__ == '__main__':  
+    app.run()
+```
+
+## GET
+GET 요청 또한 사용자(클라이언트)로부터 특정 양식(form)의 데이터를 서버로 전송하는 방법입니다.
+가장 큰 차이는 **정보를 URL에 붙여서 보내게 되고, 암호화되지 않는다는 점**입니다.
+마찬가지로 로그인 예시를 통해 결과를 확인해봅시다.
+
+### login.py(GET)
+```
+from flask import *  
+# Flask 인스턴스 생성
+app = Flask(__name__)  
+
+
+# login 주소에서 GET 방식의 요청을 받았을 때
+# @app.route()에서 methods 인자의 기본 값은 GET으로 생략해서 작성해도 됩니다.
+@app.route('/login',methods = ['GET'])  
+def login():  
+      id = request.args.get['id']  
+      passwrd = request.args.get['pass']  
+      if id=="Elice" and passwrd=="Awesome!": 
+          return "Welcome %s" % id  
+
+
+if __name__ == '__main__':  
+   app.run()
+```
+
+> POST 방식과 가장 큰 차이점은 URL에 ```https://localhost:8080/login?id=elice&pass=awesome``` 으로 표현된다는 점입니다.
+로그인을 할 때, URL에 아이디와 비밀번호가 표기된다면 정보보안을 유지할 수 없겠죠?
+따라서 로그인과 같이 정보를 가려야할 때는 POST 방식을 사용하고 그렇지 않을 때는 GET 방식을 사용해야 합니다.
+
+
+## HTTP 메소드 - POST 실습
+
+POST 요청은 눈에 파라미터가 보이는 GET 요청과 달리 전달하려는 정보가 HTTP body에 포함되어 전달 됩니다.
+
+전달하려는 정보는 Form Data, Json strings 등이 있습니다.
+
+본 실습에서는 POST만 사용하는 실습이기 때문에 GET을 사용하지 않습니다. URL에 바로 접속하면 GET을 사용하지 않아서 메소드가 허용되지 않았다는 에러 메세지가 출력됩니다.
+
+그래서 초기 페이지에서 입력값을 전달받아 /post로 이동하는 실습을 진행하겠습니다.
+
+#### 초기 페이지
+
+초기 페이지의 URL은 '/' 입니다.
+따라서 웹 서버를 구동하게 되면 아래 코드가 동작됩니다.
+
+##### '/' 주소를 입력했을 때 hello()함수 실행
+```
+@app.route('/')
+def hello():
+    return render_template('index.html')
+```
+
+hello()함수는 index.html 파일을 rendering 하여 반환합니다.
+> rendering이란, 웹 브라우저 상의 화면을 표현하는 과정을 뜻하며 자세한 내용은 ```https://developers.google.com/web/updates/2019/02/rendering-on-the-web?hl=ko``` 에서 확인할 수 있습니다.
+
+##### index.html
+
+templates/index.html 파일에서 코드를 전부 확인할 수 있습니다.
+가장 핵심적인 구문은 ```<form>``` 태그입니다.
+```
+<!-- form의 데이터 제출 시 /post 주소로 전달! -->
+<form action = "/post" method="post"></form>
+```
+
+##### post 페이지
+
+/post로 주소를 이동 했을 때,
+
+```@app.route("/post", methods=['POST'])```
+
+초기 페이지에서 위와 같이 반환합니다. 여기서 사용된 render_template() 메소드는 Flask에서 html파일을 렌더링하기 위해서 사용됩니다.
+
+POST로 전달받은 값은 ```request.form['변수명']```을 사용하면 html의 form에서 해당 변수명에 맞는 값을 사용할 수 있습니다.
+
+```
+from flask import Flask
+from flask import request
+from flask import render_template
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+    return render_template('index.html')
+
+
+@app.route("/post", methods=['POST'])
+def post():
+    #post()에서, index.html에서 입력받은 input 값을 value에 저장하세요
+    value = request.form['input']  
+    
+    msg = "%s 님 환영합니다." % value
+    return msg
+
+
+if __name__ == '__main__':
+    app.run()
+```
+
+## HTTP 메소드 - GET 실습
+
+Flask에서 GET 또는 POST로 전달받은 정보를 request모듈을 사용하여 활용할 수 있습니다.
+
+GET 방식의 경우 모든 파라미터를 URL로 보내 요청하는 방식입니다.
+
+request 모듈에는 GET 방식으로 URL의 인자를 'key = value' 형태로 전달했을 때 다음 방식으로 활용합니다.
+
+> 예시 : 아래의 주소를 입력했을 시 number의 값은 1 ```https://주소.com/?key=1```
+
+```number = request.args.get('key`, 초기값)```
+
+
+초기값은 key값으로 아무 값도 넘겨받지 못했을 때 활용되는 값입니다. 이후에는 URL을 통해 /?key=value 형태로 key 값을 전달받으면 해당 값을 사용합니다.
+
+여러개의 key와 값을 전달받으려면 & 기호를 입력하여 추가할 수 있습니다.
+
+> 예시 : ```https://주소.com/?key=1&value=2``` key의 값은 1, value의 값은 2
+
+```
+from flask import Flask
+from flask import request
+
+app = Flask(__name__)
+
+@app.route('/')
+def user_juso():
+    # get방식으로 word1 key에 대한 값을 받아 변수 temp1에 저장하세요. 기본 값은 “Elice” 입니다.
+    temp1 = request.args.get('word1', "Elice")
+    
+    # get방식으로 word2 key에 대한 값을 받아 변수 temp2에 저장하세요. 기본 값은 “Hello” 입니다.
+    temp2 = request.args.get('word2', "Hello")
+    
+    return temp1 + "<br>" + temp2
+
+if __name__ == '__main__':
+    app.run()
+    
+# get 방식을 사용하는 주소에서 값을 지정하지 않는다면 서버 에러(500)가 발생합니다. 이때 초기값을 설정하면 서버 에러 발생을 막을 수 있습니다.
+# 주소의 마지막에 _=00000 형식의 값을 지우고 word1=값&word2=값을 입력하며 작성한 코드를 확인해보세요.
+```
+
+## HTTP 메소드 - GET & POST
+
+GET과 POST를 동시에 사용하여 웹 페이지를 동작시킬 수 도 있습니다.
+
+만약 method가 GET이라면 이름을 입력받는 웹 페이지를 동작시키고
+
+method가 POST라면 입력 같은 값을 포함하는 문장을 출력할 수 있습니다.
+
+```
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+
+@app.route("/",methods=['GET', 'POST'])
+def post():
+    # 요청된 method가 POST라면 전달받은 input 변수를 value에 저장하도록 코드를 작성하세요.
+    if request.method == 'POST' :
+    
+        value = request.form['input']  
+        
+        return f"{value}님 환영합니다."
+        
+    # 요청된 method가 GET이라면 index.html을 반환하도록 코드를 작성하세요.
+    if request.method == "GET" :
+        return render_template('index.html')
+        
+
+
+if __name__ == "__main__":
+    app.run()
+    
+# 조건문을 활용하실 수 있습니다.
+```
+
+
+## API와 End point가 무엇인가요?
+
+API는 프로그램들이 서로 상호작용하는 것을 도와주는 매체입니다.
+
+우리가 음식점에 갔을 때, 아래와 같이 행동합니다. 점원은 손님에게 메뉴를 알려주고, 주방에 주문받은 요리를 요청합니다. 그 다음 주방에서 완성된 요리를 손님에게 다시 전달합니다. API는 점원과 같은 역할을 합니다.
+
+API는 손님(프로그램)이 주문할 수 있게 메뉴(명령 목록)을 정리하고, 주문(명령)을 받으면 요리사(응용프로그램)와 상호작용하여 요청된 메뉴(명령에 대한 값)를 전달합니다.
+
+> API는 프로그램들이 서로 상호작용하는 것을 도와주는 매개체이다!!
+
+### API의 역할은 무엇인가요?
+
+1. API는 서버와 데이터베이스에 대한 출입구 역할을 합니다.
+
+데이터베이스에는 정보들이 저장됩니다. 따라서, 모든 사람들이 이 데이터베이스에 접근할 수 있으면 안됩니다. API는 이를 방지하기 위해 여러분이 가진 서버와 데이터베이스에 대한 출입구 역할을 하며, 허용된 사람들에게만 접근성을 부여해줍니다.
+
+2. API는 프로그램과 기기가 원활하게 통신할 수 있도록 합니다.
+
+우리가 흔히 알고 사용하고 있는 스마트폰 어플이나 프로그램과 기기가 데이터를 원활히 주고 받을 수 있도록 돕는 역할을 합니다.
+
+3. API는 모든 접속을 표준화합니다.
+
+API는 모든 접속을 표준화하기 때문에 기기나 운영체제 등과 상관없이 누구나 동일한 권한을 얻을 수 있습니다.
+
+
+### API Testing
+
+API Testing은 API를 테스트하여 기능, 성능, 신뢰성, 보안 측면에서 기대를 충족하는지 확인하는 테스팅의 한 유형입니다.
+
+완벽하게 작동하는 API만이 실제 애플리케이션에서 사용할 수 있겠죠? 따라서, 정상적으로 완벽하게 작동하는지 테스트해야 합니다. API 테스트를 진행하게 되면 향후 특정 시점에서 발생할 수 있는 애플리케이션의 많은 문제점들을 해결할 수 있습니다.
