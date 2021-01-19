@@ -192,3 +192,67 @@ def list():
     member_list = Member.query.order_by(Member.age.desc()).count()
     return str(member_list)
 ```
+
+# Model을 사용하여 자료 추가
+
+add.html 파일과 _add() 함수를 추가하면 데이터를 입력받고 입력받은 값을 모델을 사용해서 DB에 저장할 수 있습니다.
+
+add.html에는 POST 메소드를 사용해서 form을 사용하여 입력받겠습니다.
+
+form에서는 이름과 나이 두 값을 입력받습니다.
+
+add()에서는 입력받은 name과 age를 사용하되 age를 숫자만 입력받도록 작성합니다.
+
+DB에 새로운 튜플이 추가가 완료되면 _list() 주소를 반환하도록 redirect()를 사용합니다.
+
+```
+from flask import Flask, request, render_template, redirect, url_for
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+import config
+
+db = SQLAlchemy()
+migrate = Migrate()
+
+app = Flask(__name__)
+app.config.from_object(config)
+db.init_app(app)
+migrate.init_app(app, db)
+from models import Member
+
+
+@app.route('/list')
+def _list():
+    member_list = Member.query.all()
+    return render_template('member_list.html', member_list=member_list)
+
+# 1. 데이터를 추가할 경로와 함수를 만드세요.
+@app.route('/', methods=['GET', 'POST'])
+def _add():
+
+    # 2. HTTP 메소드가 POST일 때 request로 부터 form 값을 받아오도록 코드를 작성하세요.
+    if request.method == 'POST':
+        name = request.form['name']
+        # age = request.form['age']
+        # 3. 나이를 입력 받을 때는 숫자만 입력받도록 try~except문을 추가하세요.
+        try:
+            age = int(request.form['age'])
+        except:
+            return "나이는 숫자만 입력하세요."
+        
+        # 4. 입력받은 이름, 나이를 DB에 추가하는 코드를 작성하세요.
+        member = Member(name, age)
+        db.session.add(member)
+        db.session.commit()
+        
+        # 5. 추가가 완료되면 list를 보여주도록 redirect()를 사용하여 _list()로 이동하도록 코드를 작성하세요.
+        return redirect(url_for('_list'))
+        
+    else:
+        return render_template('add.html')
+        
+if __name__ == "__main__":
+    app.run()
+```
+
+
