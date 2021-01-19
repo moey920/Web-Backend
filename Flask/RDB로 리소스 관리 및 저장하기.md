@@ -126,7 +126,7 @@ def search():
         cur = con.cursor()
         
         # cur에 form을 통해 전달 받은 name값이 DB에 있는지 찾는 쿼리문을 실행하세요
-        cur.execute("select name from Board")
+        cur.execute(f"SELECT * FROM Board WHERE name='{name}' or context='{name}'")
         
         # 쿼리문 실행결과를 fetchall()을 사용하여 rows에 저장하세요.
         rows = cur.fetchall()
@@ -145,3 +145,108 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
+## DB 사용자 추가
+
+사용자를 추가할 때는 INSERT INTO 쿼리문을 사용합니다.
+
+1. /add 경로와 add() 함수를 만들어 줍니다.
+```
+@app.route('/add', methods = ['GET', 'POST'])
+def add():
+```
+
+2. 데이터베이스에 추가가 완료된다면 commit()을 하지만 중간에 문제가 생겼을 경우에는 이전 위치로 rollback()해야 하기 때문에 try~except문으로 commit()과 rollback()을 제어합니다.
+```
+try:
+    name = request.form['name']
+    context = request.form['context']
+    with sqlite3.connect("database.db") as con:
+        cur = con.cursor()
+        cur.execute("INSERT INTO Board (name, context) VALUES (?, ?)", (name, context))
+        con.commit()
+except:
+    con.rollback()
+finally : 
+    return redirect(url_for('board'))
+```
+
+3. 마지막으로 templates 폴더의 add.html 파일을 사용하여 사용자를 추가하는 프로그램을 완성합니다.
+```
+<form action = "/add" method = "POST">
+     이름<br>
+     <input type = "text" name = "name" /><br>
+     내용<br>
+     <input type = "text" name = "context" style="text-align:center; width:400px; height:100px;"/><br><br>
+     <input type = "submit" value = "게 시" /><br>
+ </form>
+```
+
+#### DB 추가, 검색 소스 코드
+```
+#DATABASE
+from flask import Flask, render_template, request, url_for, redirect
+import sqlite3
+app = Flask(__name__)
+conn = sqlite3.connect('database.db')
+print ("Opened database successfully")
+conn.execute('CREATE TABLE IF NOT EXISTS Board (name TEXT, context TEXT)')
+print ("Table created successfully")
+name = [['Elice', 15], ['Dodo', 16], ['Checher', 17], ['Queen', 18]]
+for i in range(4):
+    conn.execute(f"INSERT INTO Board(name, context) VALUES('{name[i][0]}', '{name[i][1]}')")
+conn.commit()
+conn.close()
+
+
+@app.route('/')
+def board():
+    con = sqlite3.connect("database.db")
+    cur = con.cursor()
+    cur.execute("select * from Board")
+    rows = cur.fetchall()
+    print("DB:")
+    for i in range(len(rows)):
+            print(rows[i][0] + ':' + rows[i][1])
+    return render_template('board.html', rows = rows)
+
+
+@app.route('/search', methods = ['GET', 'POST'])
+def search():
+    if request.method == 'POST':
+        name = request.form['name']
+        con = sqlite3.connect("database.db")
+        cur = con.cursor()
+        cur.execute(f"SELECT * FROM Board WHERE name='{name}' or context='{name}'")
+        rows = cur.fetchall()
+        print("DB:")
+        for i in range(len(rows)):
+            print(rows[i][0] + ':' + rows[i][1])
+        return render_template('search.html', rows = rows)
+    else:
+        return render_template('search.html')
+
+@app.route('/add', methods = ['GET', 'POST'])
+def add():
+    if request.method == 'POST':
+        try:
+            # add.html의 form에서 name, context 값을 가져와 name, context에 저장하세요.
+            name = request.form['name']
+            context = request.form['context']
+            
+            with sqlite3.connect("database.db") as con:
+                cur = con.cursor()
+                # execute()를 실행해 쿼리문을 사용해 name, context값을 DB에 추가하세요.
+                cur.execute("insert into Board (name, context) values (?, ?)", (name, context))
+                # 수정된 DB가 반영되도록 commit()명령어를 추가하세요.
+                con.commit()
+                
+        except:
+            con.rollback()
+        finally : 
+            return redirect(url_for('board'))
+    else:
+        return render_template('add.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
