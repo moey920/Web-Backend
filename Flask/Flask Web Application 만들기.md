@@ -161,3 +161,67 @@ def add(): # 생성은 request를 사용합니다. html의 form을 사용해서 
 if __name__ == '__main__':
     app.run(debug=True)
 ```
+
+## UPDATE & DELETE 구현
+
+리스트 자료구조를 사용하여 게시글을 수정하고 삭제하는 프로그램을 만들겠습니다.
+
+수정이나 삭제에서는 어떤 자료를 수정 또는 삭제할지를 알아야 합니다. name만 가지고 삭제를 할 경우에는 name이 중복된 원소들이 모두 삭제 될 수도 있는 삭제이상 현상이 발생할 수도 있습니다.
+
+그래서 본 실습에서는 index를 사용해 수정과 삭제를 수행하겠습니다. 리스트 자료구조의 index는 중복없이 0부터 순서대로 정해집니다.
+```
+<td>
+    <a href ="{{url_for('update', uid = loop.index)}}">수정</a> 
+    <a href ="{{url_for('delete', uid = loop.index)}}">삭제</a>
+</td>
+```
+
+위와 같이 html의 <a href> 태그를 통해 index를 같이 넘겨줄 수 있습니다. 단 저기서 loop.index는 1부터 세기 때문에 main에서 사용할 때는 uid-1 값을 사용해야 합니다.
+
+delete()와 update()에 대한 함수를 각각 만들고 delete()는 리스트의 원소 삭제 기능을 추가하고, update에는 수정내용을 POST로 받아서 리스트의 원소 수정 기능을 수행하면 CRUD의 U와 D 기능 구현이 완료됩니다.
+```
+from flask import Flask, render_template, request, redirect, url_for
+app = Flask(__name__)
+
+board = []
+
+@app.route('/')
+def index():
+    return render_template('list.html', rows = board)
+
+
+@app.route('/add', methods = ['POST'])
+def add():
+    print(request.method)
+    if request.method == 'POST':
+        board.append([request.form['name'], request.form['context']])
+        return redirect(url_for('index'))
+    else:
+        return render_template('list.html', rows = board)
+
+
+@app.route('/delete/<int:uid>')
+def delete(uid):
+    # 매개변수 uid번째에 해당하는 리스트 원소를 제거하는 delete()함수를 완성하세요.
+    
+    del board[uid:uid+1]
+    
+    return redirect(url_for('index'))
+
+
+@app.route('/update/<int:uid>', methods=['GET','POST'])
+def update(uid):
+    if request.method =='POST':
+        # 매개변수 uid번째에 해당하는 리스트 원소를 입력받은 name, context로 수정하는 update() 함수를 완성하세요.
+        
+        board[uid] = [request.form['name'], request.form['context']]
+        
+        return redirect(url_for('index'))
+    else:
+        return render_template('update.html',index=uid,rows=board)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
