@@ -246,5 +246,65 @@ if __name__ == '__main__':
 허가(Authorization)은 유저가 요청하는 request를 실행할 수 있는 권한이 있는 유저인가를 확인하는 절차입니다. 예를 들어 해당 유저는 고객 정보를 볼 수 있지만 수정할 권한이 없는 경우입니다.
 
 
+```
+# 1번을 해보세요!
+from flask import Flask, request, render_template, session, url_for, redirect
 
+app = Flask(__name__)
+app.secret_key = 'super secret key'
+app.config['SESSION_TYPE'] = 'filesystem'
+userinfo = {'Elice': '1q2w3e4r!!'} # 아이디, 비밀번호는 dictionary 자료구조인 userinfo를 사용해서 저장하고 활용합니다.
+
+
+@app.route("/")
+def home(): # 이 때 로그인 여부는 session을 사용하여 확인합니다.
+    if session.get('logged_in'): # 초기 페이지에서는 로그인이 되어있다면 loggedin.html로 넘어가도록
+        return render_template('loggedin.html')
+    else: # 로그인이 되어 있지 않다면 index.html로 넘어가도록
+        return render_template('index.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        name = request.form['username']
+        password = request.form['password']
+        # 로그인 부분 오류 발생, 차후 수정 예정
+        try: # 로그인은 입력받은 username이 userinfo에 있는지 1차적으로 확인하고
+            if (name in userinfo):
+                # 2차적으로는 username에 해당하는 value 값이 입력받은 password값과 같은지 비교
+                if userinfo[name] == password :
+                    #로그인이 성공한다면 session['logged_in'] 값을 True로 바꾸고 초기 페이지로 redirect 합니다.             
+                    session['logged_in'] = True 
+                    # redirect()를 사용해서 초기 페이지로 이동하세요.
+                    return redirect(url_for('/'))
+
+                    
+                else: # 아이디가 없거나 비밀번호가 틀리면 사용자에게 안내하도록 코드를 작성합니다.
+                    return '비밀번호가 틀립니다.'
+            return '아이디가 없습니다.'
+        except:
+            return 'Dont login'
+    else:
+        return render_template('login.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register(): # 회원가입 같은 경우는 입력 받은 username, password 값을 userinfo에 추가하고 login 창으로 redirect하도록 코드를 작성합니다.
+    if request.method == 'POST':
+        name = request.form['username']
+        password = request.form['password']
+        # userinfo에 입력받은 username은 key로 password는 value로 하여 추가하세요.
+        userinfo[name] = password
+        return redirect(url_for('login'))
+        
+    else:
+        return render_template('register.html')
+
+
+@app.route("/logout")
+def logout():
+    session['logged_in'] = False # 로그아웃은 session['logged_in'] 값을 False로 바꾸고 초기 페이지로 redirect 합니다.
+    return render_template('index.html')
+```
 
