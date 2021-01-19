@@ -77,3 +77,87 @@ app.register_blueprint(simple_page)
 - 블루프린트는 웹 애플리케이션에 등록할 수 있는 청사진, 경로, 기타 앱 관련 기능을 나타냅니다.
 - 블루프린트는 웹 애플리케이션의 개체를 미리 요구하지 않고 기능을 정의할 수 있습니다. 또한, 파일을 여러개로 효과적으로 개발할 수 있게끔 할 수 있어 유지보수적인 측면에서 이점을 가집니다.
 - 블루프린트 없이 flask 웹 애플리케이션을 만들 수 있습니다. 하지만 복잡한 웹 애플리케이션을 구현하고자 할 때 블루프린트를 사용하는 것을 권장합니다.
+
+## 게시물 생성 및 읽기
+
+리스트 자료구조를 사용하여 게시글을 추가하고 조회하는 프로그램을 만들겠습니다.
+
+추가는 사용자로부터 입력받은 값을 리스트에 추가하는 작업을 하고 조회는 리스트의 값을 html파일로 보내 사용자가 볼 수 있도록 하는 작업입니다.
+
+생성과 조회 모두 Board.html에서 이루어지도록 작성하겠습니다.
+
+페이지는 하나지만 함수는 두 가지를 사용해야 합니다. 초기 페이지에서는 조회 기능을 /add 페이지에서는 추가 기능을 만들겠습니다.
+
+### 조회
+
+조회는 Board.html에서 Jinja2 문법을 사용하면 구현가능합니다.
+```
+{% for row in rows %}
+<tr>
+    <td>{{ loop.index }}</td>
+    <td>{{ row[0] }}</td>
+    <td>{{ row[1] }}</td>
+</tr>
+{% endfor %}
+```
+
+Jinja2를 사용하면 html 파일 내에서 파이썬처럼 제어문이나 변수 등을 사용할 수 있습니다.
+
+if나 for을 사용할 때는 {%for 또는 if%} 태그를 사용합니다. 제어문이 끝날 때는 {%endfor 또는 endif%}로 마무리합니다.
+
+변수를 사용할 때는 {{변수명}}형태로 사용합니다.
+
+```return render_template('Board.html', rows = board)```
+
+위와 같이 코드를 작성하면 리스트를 html 파일로 넘겨줄 수 있습니다.
+
+### 생성
+
+생성은 request를 사용합니다. html의 form을 사용해서 다음과 같이 코드를 짜면 파이썬 코드 내에서 입력받은 값을 사용할 수 있습니다.
+```
+<form action = "/add" method = "POST">
+    이름<br>
+    <input type = "text" name = "name" /><br>      
+    <input type = "submit" value = "게 시" /><br>
+</form>
+```
+
+파이썬 코드에서는
+
+```name = request.form['name']```
+
+이렇게 입력받은 값을 활용 가능합니다. 입력받은 값을 리스트에 추가하면 생성이 완료됩니다.
+
+지시사항
+
+1. board 리스트를 render_template를 사용하여 Board.html로 넘겨줘서 board의 내용을 조회할 수 있도록 index 함수를 완성하세요.
+
+2. form을 통해 전달받은 name과 context를 board에 추가하는 코드를 추가하여 add() 함수를 완성하세요.
+
+```
+from flask import Flask, render_template, request, redirect, url_for
+app = Flask(__name__)
+
+board = []
+@app.route('/')
+def index(): # 조회 : 조회는 Board.html에서 Jinja2 문법을 사용하면 구현가능합니다.
+    # board 리스트를 render_template를 사용하여 Board.html로 넘겨줘서 board의 내용을 조회할 수 있도록 index 함수를 완성하세요.\
+    
+    return render_template('Board.html', rows = board)
+
+
+@app.route('/add', methods = ['POST'])
+def add(): # 생성은 request를 사용합니다. html의 form을 사용해서 다음과 같이 코드를 짜면 파이썬 코드 내에서 입력받은 값을 사용할 수 있습니다.
+    if request.method == 'POST':
+        # form을 통해 전달받은 name과 context를 board에 추가하는 코드를 추가하여 add() 함수를 완성하세요.
+        board.append([request.form['name'], request.form['context']])
+
+        return redirect(url_for('index'))
+        
+    else:
+        return render_template('Board.html', rows = board)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
