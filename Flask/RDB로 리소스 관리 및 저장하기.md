@@ -250,3 +250,79 @@ def add():
 if __name__ == '__main__':
     app.run(debug=True)
 ```
+
+## 중복 사용자 방지
+
+중복 사용자를 방지하는 방법은 입력된 사용자 이름이 DB 상에 이미 있는지 확인하고 입력 여부를 제어하면 구현할 수 있습니다.
+
+입력받은 사용자 이름이 중복될 경우에는 중복사용자임을 사용자에게 알리고 입력을 다시 받도록 프로그램을 구현하겠습니다.
+
+중복임을 확인하는 데는 여러 방법이 있습니다.
+
+1. 쿼리문을 통해 name이 일치하는 튜플을 추출해서 비교하는 방법이 있습니다.
+2. 쿼리문을 통해 name이 일치하는 튜플 수를 쿼리문의 count()를 사용해 그 값이 1개 이상인지 확인하는 방법이 있습니다.
+
+```
+#DATABASE
+from flask import Flask, render_template, request, url_for, redirect
+import sqlite3
+app = Flask(__name__)
+conn = sqlite3.connect('database.db')
+print ("Opened database successfully")
+conn.execute('CREATE TABLE IF NOT EXISTS Board (name TEXT, context TEXT)')
+print ("Table created successfully")
+name = [['Elice', 15], ['Dodo', 16], ['Checher', 17], ['Queen', 18]]
+for i in range(4):
+    conn.execute(f"INSERT INTO Board(name, context) VALUES('{name[i][0]}', '{name[i][1]}')")
+conn.commit()
+conn.close()
+
+
+@app.route('/')
+def board():
+    con = sqlite3.connect("database.db")
+    cur = con.cursor()
+    cur.execute("select * from Board")
+    rows = cur.fetchall()
+    print("DB:")
+    for i in range(len(rows)):
+            print(rows[i][0] + ':' + rows[i][1])
+    return render_template('board.html', rows = rows)
+
+@app.route('/search', methods = ['GET', 'POST'])
+def search():
+    if request.method == 'POST':
+        name = request.form['name']
+        con = sqlite3.connect("database.db")
+        cur = con.cursor()
+        cur.execute(f"SELECT * FROM Board WHERE name='{name}' or context='{name}'")
+        rows = cur.fetchall()
+        print("DB:")
+        for i in range(len(rows)):
+            print(rows[i][0] + ':' + rows[i][1])
+        return render_template('search.html', rows = rows)
+    else:
+        return render_template('search.html', msg = "검색어를 입력해주세요.")
+
+@app.route('/add', methods = ['GET', 'POST'])
+def add():
+    if request.method == 'POST':
+        name = request.form['name']
+        context = request.form['context']
+        with sqlite3.connect("database.db") as con:
+            cur = con.cursor()
+            # 쿼리문을 활용하여 name이 DB 상에 존재하지 않으면 사용자를 추가하도록 조건문을 작성하세요.
+            if not cur.executecur.execute(f"SELECT * FROM Board WHERE name='{name}'") :
+
+                cur.execute(f"INSERT INTO Board (name, context) VALUES ('{name}', '{context}')")
+                con.commit()
+                
+            else:
+                # DB 상에 사용자가 있을 경우 else 조건문으로 중복사용자임을 알 수 있도록 add.html의 msg에 값을 넘기세요.
+                return render_template('add.html', msg = "중복된 아이디입니다. 다른 아이디를 입력해주세요.")
+        return redirect(url_for('board'))
+    else:
+        return render_template('add.html')
+if __name__ == '__main__':
+    app.run(debug=True)
+```
