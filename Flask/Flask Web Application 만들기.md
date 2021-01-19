@@ -342,3 +342,65 @@ def logout():
     return render_template('index.html')
 ```
 
+## 로깅이란?
+
+로깅은 **프로그램이 작동할 때 발생하는 이벤트를 추적**하는 행위입니다. 프로그램의 문제들을 파악하고 유지보수하는데 사용되고, 로깅을 통해 발생한 에러를 추적 가능합니다.
+
+우리가 제작하여 운영 중인 웹 서비스에서 문제가 발생했을 경우, 해당 문제의 원인을 파악하려면 문제가 발생했을 때의 정보가 필요합니다. 이런 정보를 얻기 위해서 중요한 기능이 실행되는 부분에 적절한 로그(log)를 남겨야 합니다. 일반적인 로그 기록의 이점은 아래와 같습니다.
+
+- 로그는 성능에 관한 통계와 정보를 제공할 수 있습니다.
+- 로그는 재현하기 힘든 버그에 대한 유용한 정보를 제공할 수 있습니다.
+- 설정이 가능할 때, 로그는 예기치 못한 특정 문제들을 디버그하기 위해 그 문제들을 처리하도록 코드를 수정하여 다시 적용하지 않아도, 일반적인 정보를 저장할 수 있습니다.
+
+### 로깅 레벨(Loggin Level)
+아래 순서로 로깅이 됩니다.
+
+```DEBUG<INFO<WARNING<ERROR<CRITICAL```
+
+1. DEBUG: 상세한 정보
+2. INFO: 일반적인 정보
+3. WARNING: 예상치 못하거나 가까운 미래에 발생할 문제
+4. ERROR: 에러 로그. 심각한 문제
+5. CRITICAL: 프로그램 자체가 실행되지 않을 수 있는 문제
+
+- 파이썬 로거 레벨 설정에 따라서 하위 레벨은 출력이 되지 않습니다.
+- 기본 로거 레벨 세팅은 WARNING이기 때문에 설정 없이 INFO, DEBUG를 출력할 수 없습니다.
+
+### Python logger
+
+기본적으로 아래와 같은 로깅 이력은 남기는 것이 좋습니다.
+
+- 서버 시작 로그
+- 서버 포트 번호
+- 함수 호출
+- 데이터 의 입출력
+```
+#예시 코드
+import logging 
+
+if __name__ : '__main__': 
+    logging.info("hello elice!")
+```
+위 예시 코드는 hello elice!가 출력되지 않습니다. 로깅의 기본 세팅이 WARNING이기 때문입니다. 그렇다면 어떻게 하면 hello elice!가 출력이 될까요? 아래 코드와 같이 작성할 경우 출력이 되게 됩니다.
+```
+import logging 
+
+if __name__ : '__main__': 
+    logger = logging.getLogger() 
+    logger.setlevel(logging.DEBUG) # 로깅 레벨을 DEBUG로 설정
+    logger.info("hello elice!")
+```
+
+### Flask logger
+플라스크는 0.3 버전부터 logger를 플라스크 내부에서 제공하기 시작했습니다.
+(플라스크에서 기본적으로 제공하는 로깅을 제외하고 일반 python logging을 사용해도 무방합니다.)
+```
+from flask import Flask 
+app = Flask(__name__) 
+if __name__ == '__main__': 
+
+    app.logger.info("test")  # 레벨별 설정
+    app.logger.debug("debug test") 
+    app.logger.error("error test") 
+    app.run()
+```
