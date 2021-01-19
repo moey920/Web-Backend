@@ -352,6 +352,11 @@ def logout():
 - 로그는 재현하기 힘든 버그에 대한 유용한 정보를 제공할 수 있습니다.
 - 설정이 가능할 때, 로그는 예기치 못한 특정 문제들을 디버그하기 위해 그 문제들을 처리하도록 코드를 수정하여 다시 적용하지 않아도, 일반적인 정보를 저장할 수 있습니다.
 
+- 정보를 제공하는 일련의 기록인 로그(log)를 생성하도록 시스템을 작성하는 활동
+- 프린트 줄 넣기(printlning)는 보통은 일시적인 로그를 생성하기만 한다.
+- 로그가 제공하는 정보의 양은 이상적으로는 프로그램이 실행되는 중에도 설정 가능해야 한다.
+- 시스템 설계자들은 시스템의 복잡성 때문에 로그를 이해하고 사용해야 합니다.
+
 ### 로깅 레벨(Loggin Level)
 아래 순서로 로깅이 됩니다.
 
@@ -402,5 +407,44 @@ if __name__ == '__main__':
     app.logger.info("test")  # 레벨별 설정
     app.logger.debug("debug test") 
     app.logger.error("error test") 
+    app.run()
+```
+
+## 로깅 구현
+
+로깅은 서버 구동간 에러가 발생했을 때 에러를 기록해 어떤 에러인지 파악하도록 용이하게 해주는 기능입니다.
+
+로깅은 ```app.logger.error(error)```라고 명령어를 입력하면 구동간 에러가 발생했을 때 어떤 에러가 발생했는지 서버 관리자가 식별할 수 있게 해줍니다.
+
+기존에는 경로를 지정하는데 ```@app.route('/')```를 사용했습니다. 로깅은 조금 다릅니다.
+
+특정 에러에 대하여 ```errorhandler```를 사용하면 해당 에러가 발생했을 때 매칭됩니다.
+```
+@app.errorhandler(404)
+```
+추가로 특정 에러가 발생했을 때 기본 에러창이 아닌 직접 만든 에러안내 창이 나오도록 return 값을 지정하겠습니다.
+
+```
+from flask import Flask,render_template
+
+app = Flask(__name__)
+
+
+# errorhandler()를 사용해서 404 에러를 제어하도록 코드를 추가하세요.
+@app.errorhandler(404)
+# 404에러에 대응하고 error를 매개변수로 받는 page_not_found() 함수를 만드세요.
+def page_not_found() :
+    # logger.error()를 사용해 에러가 식별되도록 코드를 추가하세요.
+    app.logger.error(404)
+    # render_template()를 사용하여 page_not_found.html을 반환하세요.
+    return render_template('page_not_found.html')
+
+
+@app.route('/')
+def hello_elice():
+    return "Hello Elice!"
+
+
+if __name__ == '__main__':
     app.run()
 ```
