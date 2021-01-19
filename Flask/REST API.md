@@ -180,3 +180,106 @@ CRUD에 빗대어 좀 더 자세히 알아보겠습니다.
 | READ | SELECT |
 | UPDATE | UPDATE |
 | DELETE | DELETE |
+
+## AJAX : Asynchronous JavaScript and XML
+
+> 자바스크립트의 라이브러리 중 하나이며 비동기식 자바스크립트와 XML의 줄임말입니다.
+
+- AJAX는 REST API를 손쉽게 구현하기 위해 사용되는 프레임워크이며 html 파일에서 간단히 사용하는 방법에 대해 알아보겠습니다.
+- html 파일에서 $.ajax와 같은 형태로 사용되며 코드와 함께 어떠한 요소로 구성되는지 살펴보겠습니다.
+```
+$.ajax({
+    type: 'POST',
+    url: '{{url_for("ajax")}}',
+    data: JSON.stringify(postdata),
+    dataType : 'JSON',
+    contentType: "application/json",
+    success: function(data){
+        alert('성공! 데이터 값:' + data.result2['id']+" " + data.result2['name']+ " " + data.result2['context'])
+    },
+    error: function(request, status, error){
+        alert('ajax 통신 실패')
+        alert(error);
+    }
+})
+```
+
+현재 POST 방식으로 생성된 데이터를 확인하고 있습니다. 각 요소의 의미는 아래와 같습니다.
+
+| 요소 | 의미 |
+|:---:|:---:|
+| type | HTTP 메서드 종류 |
+| url | 요청 URL |
+| data | 서버로 보낼 데이터 |
+| contentType | 서버로 보낼 컨텐츠의 유형 |
+| success | 요청이 완료될 때 호출 |
+| Text | 요청이 실패할 때 호출 |
+
+이러한 AJAX를 이용할 때 Flask 코드가 어떻게 작성되어야 하는지 알아볼까요?
+
+앞서 json 형태의 데이터를 반환하기 위해 json.dump()를 이용했는데, 이번에는 jsonify() 메소드를 이용해보겠습니다. 만약 실행 결과가 성공이라면 매개변수로 아래와 같이 넘겨주면 됩니다.
+```
+jsonify(result = "success")
+```
+
+마지막으로 POST 요청을 통해 얻은 데이터를 json 형식으로 얻기 위해 ```request.get_json()```을 이용하면 된다는 것을 기억하세요.
+
+### REST API를 AJAX로 구현하는 방법
+
+```
+from flask import Flask, render_template, jsonify, request
+
+app = Flask(__name__)
+
+board = []
+
+@app.route('/')
+def index():
+    return render_template('index.html', rows=board)
+
+
+@app.route('/ajax', methods=['POST'])
+def ajax():
+    # 1. ajax() 메소드 내 data 변수에 request를 이용해 전달된 데이터를 json 형태로 저장하세요.
+    # POST 요청을 통해 얻은 데이터를 json 형식으로 얻기 위해 request.get_json()을 이용하면 된다는 것을 기억하세요.
+    data = request.get_json()
+    board.append(data)
+    
+    # 2. ajax() 메소드에서 jsonify()를 이용해 결과를 반환하세요. 반환되는 내용은 아래와 같습니다.
+    return jsonify(result = "success", result2 = data)
+```
+	
+## SQL Alchemy
+
+SQL Alchemy에 REST API를 적용하려고 합니다. 그러기 위해서는 SQLAlchemy()에서 반환되는 SQL 쿼리 결과를 JSON 형태로 변환할 수 있어야 합니다.
+
+```데이터베이스 모델.query.all()```을 이용하면 현재 데이터베이스에 저장된 객체들의 row에 접근할 수 있습니다.
+
+그리고 접근한 객체의 컬럼을 반복문을 이용해 확인할 수 있습니다.
+```
+for i in `데이터베이스 모델.query.all()`:
+    print(i.name) # i의 컬럼인 name 출력
+```
+이처럼 반복문을 이용해 객체들의 이름과 인덱스를 함께 딕셔너리 형태로 저장해봅시다. 그리고 해당 딕셔너리를 json 형태로 변환해 HTTP 상태 코드와 함께 반환해봅시다.
+
+지시사항
+1. key값은 0부터 1씩 증가하고 value는 Member.query.all()의 name을 가지는 딕셔너리를 만드세요.
+
+2. jsonify() 메소드를 이용해 상태 코드와 json으로 변환한 딕셔너리를 함께 반환하세요.
+
+제출 결과
+
+{
+  "result": "{\"0\": \"elice\"}", 
+  "status": 200
+}
+Copy
+Tips
+만약 2개의 데이터가 있으면 아래처럼 제출 결과가 나옵니다.
+{
+  "result": "{\"0\": \"elice\", \"1\": \"test\"}", 
+  "status": 200
+}
+	
+	
+	
