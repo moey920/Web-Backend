@@ -48,3 +48,147 @@ db.session.add(member)
 
 #### 왜 사용하나요?
 SQLAlchemy를 사용하면 SQL 쿼리를 사용하지 않고 프로그래밍 언어로 객체간의 관계를 표현할 수 있습니다. SQLAlchemy로 Model을 정의하고, 정의한 모델을 테이블과 Mapping할 수 있는 여러가지 방법을 쉽게 구현할 수 있습니다. 이는 데이터베이스의 종류와 상관 없이 일관된 코드를 유지할 수 있어 프로그램 유지 및 보수가 편리하고 SQL 쿼리를 내부에서 자동으로 생성하기 때문에 오류 발생률이 줄어드는 장점이 있습니다.
+
+## Model 구현
+
+앞서 본 코드에서 Member는 파이썬 클래스입니다. 클래스는 데이터베이스의 테이블과 매핑하여 사용되며 데이터베이스의 테이블과 매핑되는 이 클래스를 모델이라고 합니다.
+```
+member = Member(name='여왕', age='18')
+db.session.add(member)
+```
+
+SQLAlchemy에 내장되어 있는 Model 클래스를 상속하여 이를 구현할 수 있으며 쿼리를 사용할 수 있습니다.
+```
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
+class Member(db.Model):
+name = db.Column(db.String(20), primary_key = True)
+age = db.Column(db.Integer, nullable=False)
+```
+
+### 쿼리의 종류
+쿼리의 종류와 사용법은 다음과 같습니다.
+
+| 종류 | 사용법 |
+|:---:|:---:|
+| equal | == |
+| not equal | != |
+| like | like() |
+| in | in_() |
+| not in | ~ in_() |
+| is null | ==None |
+| is not null | !=None |
+| and | & |
+| or | \| |
+| order by | order_by() |
+| limit | limit() |
+| offset | offset() |
+| count | count() |
+	
+> equal (==): 이름이 “Elice”인 멤버를 검색합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.filter(Member.name == 'Elice')
+    return " ".join(i.name for i in member_list)
+```
+
+> not equal (!=): 이름이 “Elice”가 아닌 멤버를 검색합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.filter(Member.name != 'Elice')
+    return " ".join(i.name for i in member_list)
+```
+
+> like (like()): 이름이 “Elice”와 비슷한 멤버를 검색합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.filter(Member.name.like('Elice'))
+    return " ".join(i.name for i in member_list)
+```
+
+> in: 이름이 “Elice”, “Dodo”에 포함되는 멤버를 검색합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.filter(Member.name.in_(['Elice', 'Dodo']))
+    return " ".join(i.name for i in member_list)
+```
+
+> not in: 이름이 “Elice”, “Dodo”에 포함되지 않는 멤버를 검색합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.filter(~Member.name.in_(['Elice', 'Dodo']))
+    return " ".join(i.name for i in member_list)
+```
+
+> is null: 이름이 비어있는 멤버를 검색합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.filter(Member.name == None)
+    return " ".join(i.name for i in member_list)
+```
+
+> is not null: 이름이 비어있지 않은 멤버를 검색합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.filter(Member.name != None)
+    return " ".join(i.name for i in member_list)
+```
+
+> and: 이름이 “Elice”이며 나이가 15살인 멤버를 검색합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.filter((Member.name == 'Elice') & (Member.age == '15'))
+    return " ".join(i.name for i in member_list)
+```
+
+> or: 이름이 “Elice”이거나 나이가 15살인 멤버를 검색합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.filter ((Member.name == 'Elice') | (Member.age == '15'))
+    return " ".join(i.name for i in member_list)
+```
+
+> order by: 나이순으로 정렬하여 검색합니다. 기본적으로 오름차순으로 정렬되지만 desc() 사용시 내림차순으로 정렬됩니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.order_by(Member.age.desc())
+    return " ".join(i.name for i in member_list)
+```
+
+> limit: 나이를 내림차순으로 정렬하되, limit_num의 크기만큼 반환합니다.
+```
+@app.route('/')
+def list(limit_num = 5):
+    if limit_num is None:
+        limit_num = 5
+    member_list = Member.query.order_by(Member.age.desc()).limit(limit_num)
+    return " ".join(i.name for i in member_list)
+```
+
+> offset: 나이를 내림차순으로 정렬하되, off_set 크기만큼 앞에서 부터 생략하고 반환합니다.
+```
+@app.route('/')
+def list(off_set = 5):
+    if off_set is None:
+        off_set = 5
+    member_list = Member.query.order_by(Member.age.desc()).offset(off_set)
+    return " ".join(i.name for i in member_list)
+```
+
+> count: 나이를 내림차순으로 정렬하고 나오는 튜플 수를 반환합니다.
+```
+@app.route('/')
+def list():
+    member_list = Member.query.order_by(Member.age.desc()).count()
+    return str(member_list)
+```
