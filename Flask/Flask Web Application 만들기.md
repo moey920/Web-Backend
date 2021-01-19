@@ -249,7 +249,7 @@ if __name__ == '__main__':
 
 로그인 기능은 기존에 저장된 유저 정보로 로그인을 할 수도 있지만 회원가입 기능을 추가한 로그인하는 프로그램을 만들겠습니다.
 
-초기 페이지에서는 로그인이 되어있다면 loggedin.html로 넘어가도록 로그인이 되어 있지 않다면 index.html로 넘어가도록 코드를 작성합니다.
+1. 초기 페이지에서는 로그인이 되어있다면 loggedin.html로 넘어가도록 로그인이 되어 있지 않다면 index.html로 넘어가도록 코드를 작성합니다.
 ```
 def home():
     if session.get('logged_in'):
@@ -258,26 +258,27 @@ def home():
         return render_template('index.html')
 ```
 
-이 때 로그인 여부는 session을 사용하여 확인합니다.
-index.html에는 사용자가 로그인 또는 회원가입을 할 수있도록 링크로 안내합니다.
+- 이 때 로그인 여부는 session을 사용하여 확인합니다.
+
+2. index.html에는 사용자가 로그인 또는 회원가입을 할 수있도록 링크로 안내합니다.
 ```
 <p>로그인이 필요한 서비스입니다.</p>
 <a href= "login">로그인창으로</a><br>
 <a href= "register">회원가입</a>
 ```
 
-아이디, 비밀번호는 dictionary 자료구조인 userinfo를 사용해서 저장하고 활용합니다.
+3. 아이디, 비밀번호는 dictionary 자료구조인 userinfo를 사용해서 저장하고 활용합니다.
 ```userinfo = {'Elice': '1q2w3e4r!!'}```
 
-회원가입 같은 경우는 입력 받은 username, password 값을 userinfo에 추가하고 login 창으로 redirect하도록 코드를 작성합니다.
+4. 회원가입 같은 경우는 입력 받은 username, password 값을 userinfo에 추가하고 login 창으로 redirect하도록 코드를 작성합니다.
 
-로그인은 입력받은 username이 userinfo에 있는지 1차적으로 확인하고 2차적으로는 username에 해당하는 value 값이 입력받은 password값과 같은지 비교를 합니다. 
+5. 로그인은 입력받은 username이 userinfo에 있는지 1차적으로 확인하고 2차적으로는 username에 해당하는 value 값이 입력받은 password값과 같은지 비교를 합니다. 
 
 아이디가 없거나 비밀번호가 틀리면 사용자에게 안내하도록 코드를 작성합니다.
 
-로그인이 성공한다면 session['logged_in'] 값을 True로 바꾸고 초기 페이지로 redirect 합니다.
+6. 로그인이 성공한다면 session['logged_in'] 값을 True로 바꾸고 초기 페이지로 redirect 합니다.
 
-로그아웃은 session['logged_in'] 값을 False로 바꾸고 초기 페이지로 redirect 합니다.
+7. 로그아웃은 session['logged_in'] 값을 False로 바꾸고 초기 페이지로 redirect 합니다.
 
 ```
 # 1번을 해보세요!
