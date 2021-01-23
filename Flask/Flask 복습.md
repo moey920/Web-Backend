@@ -117,57 +117,62 @@ if __name__ == '__main__':
 ## flask restful api 패키지를 활용한 api 구현
 
 ```
+import pymysql
 from flask import Flask, jsonify
 from flask_restful import reqparse, abort, Api, Resource
 
 app = Flask(__name__)
 api = Api(app)
 
-# 임시 데이터베이스!
-DB = {
-    "1": {"msg": "Hello"},
-    "2": {"msg": "Elice!"}
-    #키 : 밸류
-}
+# mysql 연결하기
+db = pymysql.connect(
+        user = 'root',
+        passwd = 'devpass',
+        host = '127.0.0.1',
+        port = 3306,
+        db = 'elice_flask_board',
+        charset = 'utf8'
+    )
+cursor = db.cursor() .
 
-# parser 변수를 통해 클라이언트로부터 전달 받는 인자들을 지정할 수 있습니다.
-parser = reqparse.RequestParser()
-parser.add_argument("id") # 여기에 작성한 인자만을 받아올 수 있다.
-parser.add_argument("msg")
+
+parser = reqparse.RequestParser() # parser 변수를 통해 클라이언트로부터 전달 받는 인자들을 지정할 수 있습니다.
+parser.add_argument("id") # key에 id, name을 입력했을 때 딕셔너리로 만들어준다
+parser.add_argument("name")
 
 
-class Board(Resource):
-    def get(self):
-        # DB에 있는 정보를 전부 다 json 형태로 반환
-        return jsonify(status = "success", result = DB)
+class Board(Resource): # api를 잘 사용할 수 있게 도와주는 Resource 상속
+    def get(self): 
+        sql = "SELECT id, name FROM `board`"
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        return jsonify(status = "success", result = result)
         
     
     def post(self):
-        # 클라이언트로부터 전달 받은 정보, id와 msg를 가지고 있다
-        args = parser.parse_args()
-        # DB에 정보 추가
-        # 값으로 입력한 id = 어떤 메세지?
-        DB[args["id"]] = {"msg": args["msg"]}
+        args = parser.parse_args() # 입력했던 키와 값을 불러와서 args에 저장한다.
+        sql = "INSERT INTO `board` (`name`) VALUES (%s)" # 어떤 문자열에 넣을 것인지 비워둠(%s)
+        cursor.execute(sql, (args['name']))  #args['name'] 이 (%s)에 들어간다.
+        db.commit() # db의 수정내용을 commit해야 db내용이 변경된다.
         
-        return jsonify(status = "success", result = DB[args["id"]])
+        return jsonify(status = "success", result = {"name": args["name"]})
         
     def put(self):
-        # 클라이언트로부터 전달 받은 정보, id와 msg를 가지고 있다
         args = parser.parse_args()
-        # DB에서 정보 수정
-        DB[args["id"]] = {"msg": args["msg"]}
+        sql = "UPDATE `board` SET name = %s WHERE `id` = %s"
+        cursor.execute(sql, (args['name'], args["id"]))
+        db.commit()
         
-        return jsonify(status = "success", result = DB[args["id"]])
+        return jsonify(status = "success", result = {"id": args["id"], "name": args["name"]})
     
     
     def delete(self):
-        # 클라이언트로부터 전달 받은 정보, id와 msg를 가지고 있다
         args = parser.parse_args()
-        # DB에서 정보 삭제
+        sql = "DELETE FROM `board` WHERE `id` = %s"
+        cursor.execute(sql, (args["id"], ))
+        db.commit()
         
-        
-        return jsonify(status = "success", result = args["id"])
-
+        return jsonify(status = "success", result = {"id": args["id"]})
 
 # API Resource 라우팅을 등록!
 api.add_resource(Board, '/board')
