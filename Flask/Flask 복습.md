@@ -107,3 +107,9 @@ api.add_resource(HelloElice, '/')
 if __name__ == '__main__':
     app.run()
 ```
+
+## API를 GUI로 이용하기 - POSTMAN
+
+> 다운로드 : <https://www.postman.com/downloads/>
+
+1. Collection 생성 후 원하는 URL을 작성하고 KEY, VALUE를 입력하고 Send보내기
